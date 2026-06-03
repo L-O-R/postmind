@@ -1,0 +1,17 @@
+package com.postmind.backend.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+
+@Data
+public class LoginRequest {
+
+    @Email(message = "Invalid Email")
+    @NotBlank(message = "email is Required")
+    private String email;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+}
