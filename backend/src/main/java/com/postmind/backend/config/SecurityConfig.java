@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,48 +38,50 @@ public class SecurityConfig {
     }
 
 //    Authentication
-    @Bean
-//    spring security => security guard => login verification machine
-//    user crediantls=> check / verify => valid / invalid
-    public AuthenticationManager  authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+//    @Bean
+////    spring security => security guard => login verification machine
+////    user crediantls=> check / verify => valid / invalid
+//    public AuthenticationManager  authenticationManager(AuthenticationConfiguration config) throws Exception {
+//        return config.getAuthenticationManager();
+//    }
 
 //    spring main configuration
     @Bean
-//    defines entire security behaviour
-    // rules for incoming request
-    public SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 //        HttpSecurity => authentication  + authorization + CORS + CSRF + sessions + routes
-        http.csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(request -> {
-                            CorsConfiguration corsConfiguration = new CorsConfiguration();
-                            corsConfiguration.setAllowedOrigins(
-                                    List.of("http://localhost:5173")
-                            );
-//                             cookies we want
-                            corsConfiguration.setAllowCredentials(true);
+        http.csrf(AbstractHttpConfigurer::disable);
 
-                            corsConfiguration.setAllowedMethods(
-                                    List.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
-                            );
-
-                            corsConfiguration.setAllowedHeaders(List.of("*"));
-
-                            return corsConfiguration;
-                        }))
-
-                .sessionManagement(
-                        session -> session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+// user login / server token remember
+//
+        http.sessionManagement(
+                session -> session.sessionCreationPolicy(
+                        SessionCreationPolicy.STATELESS
                 )
+        );
 
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers("/auth/**").permitAll()
-                                        .anyRequest().authenticated()
-                );
+        http.authorizeHttpRequests(
+                auth -> auth
+                        .requestMatchers("/auth/**").permitAll()
+                        .anyRequest().authenticated()
+        );
+
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+
+            config.setAllowedOrigins(
+                    List.of("http://localhost:5173")
+            );
+
+            config.setAllowedMethods(
+                    List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+            );
+
+            config.setAllowedHeaders(List.of("*"));
+
+            config.setAllowCredentials(true);
+
+            return config;
+        }));
 
         return http.build();
     }

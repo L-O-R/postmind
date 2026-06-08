@@ -10,15 +10,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 //     DI UserRepository automatically
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
 //    Used for password hashing
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
 //    Register new User
     public AuthResponse register(RegisterRequest registerRequest) {
@@ -44,4 +47,25 @@ public class AuthService {
         return AuthResponse.builder().message("Register Successful").build();
     }
 
+
+    public String login(LoginRequest request) {
+//        null
+//        java datatype
+//        User => null\
+        // User != null
+//        datatype
+//         email / user exist or not
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new RuntimeException("User not found"));
+
+//        passowrd validation
+//        boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        boolean isPasswordValid = user.getPassword().equals(request.getPassword());
+
+        if (!isPasswordValid) {
+            throw new RuntimeException("Invalid Password");
+        }
+
+        return jwtService.generateToken(user.getEmail());
+
+    }
 }
