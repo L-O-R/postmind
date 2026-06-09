@@ -1,6 +1,8 @@
 package com.postmind.backend.config;
 
 
+import com.postmind.backend.service.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
@@ -27,8 +30,11 @@ import java.util.List;
 
 @Configuration
 //settings file for spring security
+@RequiredArgsConstructor
 public class SecurityConfig {
 // password encode bean for hashing the password
+    private final JwtFilter jwtFilter;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         // brute force
@@ -39,8 +45,8 @@ public class SecurityConfig {
 
 //    Authentication
 //    @Bean
-////    spring security => security guard => login verification machine
-////    user crediantls=> check / verify => valid / invalid
+//    spring security => security guard => login verification machine
+//    user crediantls=> check / verify => valid / invalid
 //    public AuthenticationManager  authenticationManager(AuthenticationConfiguration config) throws Exception {
 //        return config.getAuthenticationManager();
 //    }
@@ -48,11 +54,10 @@ public class SecurityConfig {
 //    spring main configuration
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        HttpSecurity => authentication  + authorization + CORS + CSRF + sessions + routes
+// HttpSecurity => authentication  + authorization + CORS + CSRF + sessions + routes
         http.csrf(AbstractHttpConfigurer::disable);
 
 // user login / server token remember
-//
         http.sessionManagement(
                 session -> session.sessionCreationPolicy(
                         SessionCreationPolicy.STATELESS
@@ -82,7 +87,10 @@ public class SecurityConfig {
 
             return config;
         }));
-
+        http.addFilterBefore(
+                jwtFilter,
+                UsernamePasswordAuthenticationFilter.class
+        );
         return http.build();
     }
 

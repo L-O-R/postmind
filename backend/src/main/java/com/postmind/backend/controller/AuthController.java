@@ -40,7 +40,7 @@ public class AuthController {
         cookie.setSecure(false);
         httpServletRequest.addCookie(cookie);
 
-        return AuthResponse.builder().message("Login Successfully").build();
+            return AuthResponse.builder().message("Login Successfully").build();
     }
 
 }
